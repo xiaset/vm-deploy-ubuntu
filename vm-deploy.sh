@@ -16,9 +16,10 @@ OPTIONS:
    --br
    --vmname
    --erp
+   --vg
 EOF
 }
-OPTS=`getopt -o h --long mem:,cpu:,disk:,ip:,mask:,gw:,dns:,br:,vmname:,erp:,help -n 'parse-options' -- "$@"`
+OPTS=`getopt -o h --long mem:,cpu:,disk:,ip:,mask:,gw:,dns:,br:,vmname:,erp:,vg:,help -n 'parse-options' -- "$@"`
 if [ $? != 0 ] ; then echo "Failed parsing options." >&2 ; exit 1 ; fi
 eval set -- "$OPTS"
 while true; do
@@ -33,6 +34,7 @@ while true; do
     --br) BRIDGE="$2"; shift; shift ;;
     --vmname) VM_NAME="$2"; shift; shift ;;
     --erp) ENCRYPTED_ROOT_PASSWORD="$2"; shift; shift ;;
+    --vg) VG="$2"; shift; shift ;;
     -h | --help) usage; shift;;
     -- ) shift; break ;;
     * ) break ;;
@@ -48,12 +50,13 @@ test -z "$DNS" && echo "Option --dns required" && exit 1
 test -z "$BRIDGE" && echo "Option --br required" && exit 1
 test -z "$VM_NAME" && echo "Option --vmname required" && exit 1
 test -z "$ENCRYPTED_ROOT_PASSWORD" && echo "Option --erp (encrypted root password) required" && exit 1
+test -z "$VG" && echo "Option --vg required" && exit 1
 TEMPFILE=`mktemp -d`
 SKIP=`awk '/^__SEEDFILE__/ { print NR + 1; exit 0; }' $0`
 THIS=`pwd`/$0
 tail -n +$SKIP $THIS > $TEMPFILE/preseed.cfg
-virsh vol-create-as shared $VM_NAME-disk0 $DISK
-virt-install -d --name=$VM_NAME --ram $MEMORY --vcpus $CPU --disk vol=shared/$VM_NAME-disk0,bus=virtio,cache=none,format=raw --network bridge=$BRIDGE,model=virtio --vnc --vnclisten="0.0.0.0" --accelerate --location=http://mirror.neolabs.kz/ubuntu/dists/trusty-updates/main/installer-amd64/ --extra-args="auto=true text file=file:/preseed.cfg passwd/root-password-crypted=$ENCRYPTED_ROOT_PASSWORD netcfg/get_ipaddress=$IPADDR netcfg/get_netmask=$NETMASK netcfg/get_gateway=$GATEWAY netcfg/get_nameservers=$DNS netcfg/disable_autoconfig=true netcfg/get_hostname=$VM_NAME" --initrd-inject $TEMPFILE/preseed.cfg
+virsh vol-create-as $VG $VM_NAME-disk0 $DISK
+virt-install -d --name=$VM_NAME --ram $MEMORY --vcpus $CPU --disk vol=$VG/$VM_NAME-disk0,bus=virtio,cache=none,format=raw --network bridge=$BRIDGE,model=virtio --vnc --vnclisten="0.0.0.0" --accelerate --location=http://mirror.neolabs.kz/ubuntu/dists/trusty-updates/main/installer-amd64/ --extra-args="auto=true text file=file:/preseed.cfg passwd/root-password-crypted=$ENCRYPTED_ROOT_PASSWORD netcfg/get_ipaddress=$IPADDR netcfg/get_netmask=$NETMASK netcfg/get_gateway=$GATEWAY netcfg/get_nameservers=$DNS netcfg/disable_autoconfig=true netcfg/get_hostname=$VM_NAME" --initrd-inject $TEMPFILE/preseed.cfg
 virsh autostart $VM_NAME
 rm -r $TEMPFILE
 exit 0
@@ -66,7 +69,7 @@ d-i localechooser/supported-locales en_US.UTF-8 ru_RU.UTF-8
 #d-i debian-installer/language string en
 #d-i debian-installer/country string RU
 d-i netcfg/confirm_static boolean true
-d-i time/zone string UTC
+d-i time/zone string Etc/UTC
 d-i clock-setup/utc-auto boolean true
 d-i clock-setup/utc boolean true
 d-i kbd-chooser/method select American English
@@ -123,11 +126,11 @@ d-i pkgsel/update-policy select none
 #Use mirror
 d-i apt-setup/use_mirror boolean true
 d-i mirror/country string manual
-choose-mirror-bin mirror/protocol string http
-choose-mirror-bin mirror/http/hostname string mirror.neolabs.kz
-choose-mirror-bin mirror/http/directory string /ubuntu
-choose-mirror-bin mirror/suite select trusty
-choose-mirror-bin mirror/http/proxy string
+d-i mirror/suite string xenial
+d-i mirror/protocol string http
+d-i mirror/http/hostname string http://mirror.neolabs.kz
+d-i mirror/http/directory string /ubuntu
+d-i mirror/http/proxy string
 d-i preseed/late_command   string  echo d-i netcfg/get_ipaddress string \
 			$(ip addr | grep 'inet ' | grep global | cut -d ' ' -f 6 | sed 's/\/.*//') \
 			> /tmp/static_net.cfg && \
