@@ -126,11 +126,16 @@ d-i pkgsel/update-policy select none
 #Use mirror
 d-i apt-setup/use_mirror boolean true
 d-i mirror/country string manual
-d-i mirror/suite string xenial
-d-i mirror/protocol string http
-d-i mirror/http/hostname string http://mirror.neolabs.kz
-d-i mirror/http/directory string /ubuntu
-d-i mirror/http/proxy string
+choose-mirror-bin mirror/protocol string http
+choose-mirror-bin mirror/http/hostname string mirror.neolabs.kz
+choose-mirror-bin mirror/http/directory string /ubuntu
+choose-mirror-bin mirror/suite select xenial
+choose-mirror-bin mirror/http/proxy string
+#d-i mirror/suite string xenial
+#d-i mirror/protocol string http
+#d-i mirror/http/hostname string http://mirror.neolabs.kz
+#d-i mirror/http/directory string /ubuntu
+#d-i mirror/http/proxy string
 d-i preseed/late_command   string  echo d-i netcfg/get_ipaddress string \
 			$(ip addr | grep 'inet ' | grep global | cut -d ' ' -f 6 | sed 's/\/.*//') \
 			> /tmp/static_net.cfg && \

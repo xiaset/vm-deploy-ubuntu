@@ -1,0 +1,1 @@
+sudo ./vm-deploy.sh --vg shared --mem 4096 --cpu 4 --disk 40G --ip 10.101.2.111 --mask 255.255.255.0 --gw 10.101.2.1 --dns 10.101.8.11 --br br202 --vmname test.infra.petr.kaz --erp '$6$w7vK1lI/wxd$UgcryfMor.ZFIe8W/AjyhzYROb68nYgqhmDfk4ZpufayQezL4YA7VUWlfEk3qRJpBpIRZvtfbbCDWwj6LxS0m0'
