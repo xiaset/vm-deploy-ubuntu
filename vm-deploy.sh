@@ -142,4 +142,4 @@ d-i preseed/late_command   string  echo d-i netcfg/get_ipaddress string \
 			debconf-set-selections /tmp/static_net.cfg && \
 			echo d-i netcfg/disable_autoconfig boolean true > /tmp/static_net.cfg && \
 			debconf-set-selections /tmp/static_net.cfg && kill-all-dhcp; netcfg; \
-			in-target sed -i s/PermitRootLogin\ without\-password/PermitRootLogin\ Yes/ /etc/ssh/sshd_config;
+			in-target sed -i s/PermitRootLogin\ prohibit\-password/PermitRootLogin\ yes/ /etc/ssh/sshd_config;
