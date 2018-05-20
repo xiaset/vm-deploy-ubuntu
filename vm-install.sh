@@ -56,7 +56,7 @@ SKIP=`awk '/^__SEEDFILE__/ { print NR + 1; exit 0; }' $0`
 THIS=`pwd`/$0
 tail -n +$SKIP $THIS > $TEMPFILE/preseed.cfg
 virsh vol-create-as $VG $VM_NAME-disk0 $DISK
-virt-install -d --name=$VM_NAME --ram $MEMORY --vcpus $CPU --disk vol=$VG/$VM_NAME-disk0,bus=virtio,cache=none,format=raw --network bridge=$BRIDGE,model=virtio --vnc --vnclisten="0.0.0.0" --accelerate --location=http://mirror.neolabs.kz/ubuntu/dists/xenial-updates/main/installer-amd64/ --extra-args="auto=true text file=file:/preseed.cfg passwd/root-password-crypted=$ENCRYPTED_ROOT_PASSWORD netcfg/get_ipaddress=$IPADDR netcfg/get_netmask=$NETMASK netcfg/get_gateway=$GATEWAY netcfg/get_nameservers=$DNS netcfg/disable_autoconfig=true netcfg/get_hostname=$VM_NAME" --initrd-inject $TEMPFILE/preseed.cfg
+virt-install -d --name=$VM_NAME --ram $MEMORY --vcpus $CPU --cpu host --disk vol=$VG/$VM_NAME-disk0,bus=virtio,cache=none,format=raw --network bridge=$BRIDGE,model=virtio --vnc --vnclisten="0.0.0.0" --accelerate --location=http://mirror.neolabs.kz/ubuntu/dists/xenial-updates/main/installer-amd64/ --extra-args="auto=true text file=file:/preseed.cfg passwd/root-password-crypted=$ENCRYPTED_ROOT_PASSWORD netcfg/get_ipaddress=$IPADDR netcfg/get_netmask=$NETMASK netcfg/get_gateway=$GATEWAY netcfg/get_nameservers=$DNS netcfg/disable_autoconfig=true netcfg/get_hostname=$VM_NAME" --initrd-inject $TEMPFILE/preseed.cfg
 virsh autostart $VM_NAME
 rm -r $TEMPFILE
 exit 0
